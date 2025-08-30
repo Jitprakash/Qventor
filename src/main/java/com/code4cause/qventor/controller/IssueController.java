@@ -9,7 +9,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/issues")
-@CrossOrigin("*")
 public class IssueController {
 
     private final IssueService issueService;

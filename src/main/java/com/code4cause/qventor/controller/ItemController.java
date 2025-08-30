@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/items")
 public class ItemController {
