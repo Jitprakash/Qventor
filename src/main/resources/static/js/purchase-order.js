@@ -38,7 +38,7 @@ async function loadPurchaseOrders() {
         const vendorEmail = latestImport?.vendorEmail || "no-vendor@email.com";
 
         // Random reorder qty 11–30
-        const reorderQty = Math.floor(Math.random() * (30 - 11 + 1)) + 11;
+        const reorderQty =latestImport?.quantityOrdered || Math.floor(Math.random() * (30 - 11 + 1)) + 11;
         const amount = reorderQty * item.price;
 
         const row = document.createElement("tr");
