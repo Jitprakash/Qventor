@@ -4,10 +4,16 @@ import com.code4cause.qventor.model.*;
 import com.code4cause.qventor.myexception.BadRequestException;
 import com.code4cause.qventor.myexception.ResourceNotFoundException;
 import com.code4cause.qventor.repository.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,17 +25,19 @@ public class ItemService {
     private final ImportRecordRepository importRecordRepository;
     private final ExportRecordRepository exportRecordRepository;
     private final WarehouseRepository warehouseRepository;
+    private final EntityManager entityManager;
 
     @Autowired
     public ItemService(ItemRepository itemRepository,
                        AdminRepository adminRepository,
                        ImportRecordRepository importRecordRepository,
-                       ExportRecordRepository exportRecordRepository, WarehouseRepository warehouseRepository) {
+                       ExportRecordRepository exportRecordRepository, WarehouseRepository warehouseRepository, EntityManager entityManager) {
         this.itemRepository = itemRepository;
         this.adminRepository = adminRepository;
         this.importRecordRepository = importRecordRepository;
         this.exportRecordRepository = exportRecordRepository;
         this.warehouseRepository = warehouseRepository;
+        this.entityManager = entityManager;
     }
 
     @Transactional
@@ -91,9 +99,28 @@ public class ItemService {
     }
 
     //  Search items by name
-    public List<Item> searchItems(String keyword) {
-        return itemRepository.findByNameContainingIgnoreCase(keyword);
+    public List<Item> searchItems(String keyword, Long adminId) {
+        String[] words = keyword.toLowerCase().split("\\s+");
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Item> query = cb.createQuery(Item.class);
+        Root<Item> root = query.from(Item.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        // Restrict by adminId
+        predicates.add(cb.equal(root.get("admin").get("id"), adminId));
+
+        // Add LIKE conditions for each word
+        for (String word : words) {
+            predicates.add(cb.like(cb.lower(root.get("name")), "%" + word + "%"));
+        }
+
+        query.select(root).where(cb.and(predicates.toArray(new Predicate[0])));
+
+        return entityManager.createQuery(query).getResultList();
     }
+
 
     @Transactional
     //  Update an item

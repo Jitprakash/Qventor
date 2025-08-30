@@ -1,8 +1,11 @@
 package com.code4cause.qventor.controller;
 
+import com.code4cause.qventor.model.Admin;
 import com.code4cause.qventor.model.ExportRecord;
 import com.code4cause.qventor.model.ImportRecord;
 import com.code4cause.qventor.model.Item;
+import com.code4cause.qventor.repository.AdminRepository;
+import com.code4cause.qventor.service.AdminService;
 import com.code4cause.qventor.service.ItemService;
 import com.code4cause.qventor.service.WarehouseService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,11 +22,13 @@ import java.util.Set;
 public class ItemController {
     private final ItemService itemService;
     private final WarehouseService warehouseService;
+    private final AdminService adminService;
 
     @Autowired
-    public ItemController(ItemService itemService, WarehouseService warehouseService) {
+    public ItemController(ItemService itemService, WarehouseService warehouseService, AdminService adminService) {
         this.itemService = itemService;
         this.warehouseService = warehouseService;
+        this.adminService = adminService;
     }
 
     //  Add item to admin by supabaseUserId
@@ -37,9 +42,12 @@ public class ItemController {
     }
 
     //  Search endpoint
-    @GetMapping("/search")
-    public ResponseEntity<List<Item>> searchItems(@RequestParam("q") String query) {
-        List<Item> items = itemService.searchItems(query);
+    @GetMapping("/search/{adminSupabaseUserId}")
+    public ResponseEntity<List<Item>> searchItems(@RequestParam("q") String query,
+        @PathVariable String adminSupabaseUserId
+    ) {
+        Admin admin = adminService.getAdminBySupabaseUserId(adminSupabaseUserId);
+        List<Item> items = itemService.searchItems(query,admin.getId());
         return ResponseEntity.ok(items);
     }
 
