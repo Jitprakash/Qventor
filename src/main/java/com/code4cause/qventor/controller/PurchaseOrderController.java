@@ -2,6 +2,7 @@ package com.code4cause.qventor.controller;
 
 import com.code4cause.qventor.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,18 +15,16 @@ public class PurchaseOrderController {
     @PostMapping("/{id}/approve")
     public String approvePurchaseOrder(
             @PathVariable Long id,
-            @RequestParam String adminEmail,
-            @RequestParam String vendorEmail,
-            @RequestParam String vendorName,
-            @RequestParam String itemName,
-            @RequestParam int quantity,
-            @RequestParam double amount
+            @RequestParam Long itemId
     ) {
         // ⚡️ Fire email service
-        emailService.sendPurchaseOrderEmail(
-                adminEmail, vendorEmail, vendorName, itemName, quantity, amount
-        );
+        emailService.sendPurchaseOrderEmail(itemId);
 
         return " Purchase Order Approved & Email Sent!";
+    }
+
+    @GetMapping("/view")
+    public ResponseEntity<String> viewEmail(@RequestParam Long itemId){
+        return ResponseEntity.ok(emailService.getEmailDraftUrl(itemId));
     }
 }

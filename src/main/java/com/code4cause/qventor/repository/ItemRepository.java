@@ -10,4 +10,5 @@ import java.util.List;
 public interface ItemRepository extends JpaRepository<Item,Long> {
     // Custom query method: find items containing a search keyword (case-insensitive)
     List<Item> findByNameContainingIgnoreCase(String itemName);
+    Item findByName(String itemName);
 }

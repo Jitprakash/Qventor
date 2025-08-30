@@ -1,6 +1,7 @@
 package com.code4cause.qventor.service;
 
 import com.code4cause.qventor.model.*;
+import com.code4cause.qventor.myexception.BadRequestException;
 import com.code4cause.qventor.myexception.ResourceNotFoundException;
 import com.code4cause.qventor.repository.*;
 import jakarta.transaction.Transactional;
@@ -36,6 +37,12 @@ public class ItemService {
     public Item addItemToAdmin(String supabaseUserId, Item item) {
         Admin admin = adminRepository.findBySupabaseUserId(supabaseUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("Admin not found with SupabaseUserId: " + supabaseUserId));
+
+        Item existingItem = itemRepository.findByName(item.getName());
+
+        if (existingItem != null) {
+            throw new BadRequestException("Item Already Exist with the same name");
+        }
 
         item.setAdmin(admin);
 

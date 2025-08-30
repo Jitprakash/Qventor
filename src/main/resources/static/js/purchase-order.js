@@ -50,14 +50,10 @@ async function loadPurchaseOrders() {
           <td data-label="Amount">₹${amount}</td>
           <td data-label="Status" class="status-pending">Pending</td>
           <td data-label="Action" class="actions">
-            <button class="view-btn">View</button>
+            <button class="view-btn" data-itemid = ${item.id}>View</button>
             <button class="approve-btn"
               data-id="${idx + 1001}"
-              data-vendorname="${vendorName}"
-              data-vendoremail="${vendorEmail}"
-              data-itemname="${item.name}"
-              data-quantity="${reorderQty}"
-              data-amount="${amount}"
+              data-itemid="${item.id}"
             >Approve</button>
             <button class="reject-btn">Reject</button>
           </td>
@@ -70,22 +66,13 @@ async function loadPurchaseOrders() {
     document.querySelectorAll(".approve-btn").forEach((btn) => {
       btn.addEventListener("click", async (e) => {
         const poId = e.target.dataset.id;
-        const vendorName = e.target.dataset.vendorname;
-        const vendorEmail = e.target.dataset.vendoremail;
-        const itemName = e.target.dataset.itemname;
-        const quantity = e.target.dataset.quantity;
-        const amount = e.target.dataset.amount;
+        const itemId = e.target.dataset.itemid;
 
         try {
           const res = await fetch(
             `/api/purchase-orders/${poId}/approve?` +
               new URLSearchParams({
-                adminEmail: user.email,
-                vendorEmail,
-                vendorName,
-                itemName,
-                quantity,
-                amount,
+                itemId,
               }),
             { method: "POST" }
           );
@@ -124,6 +111,32 @@ async function loadPurchaseOrders() {
         // // Clear action buttons
         // const actionCell = row.querySelector("[data-label='Action']");
         // actionCell.innerHTML = `<button class="view-btn">View</button>`;
+      });
+    });
+
+    //View Button
+    document.querySelectorAll(".view-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        const itemId = e.target.dataset.itemid;
+
+        try {
+          const res = await fetch(
+            `/api/purchase-orders/view?` +
+              new URLSearchParams({
+                itemId,
+              }),
+            { method: "GET" }
+          );
+
+          if (!res.ok) throw new Error("Approval request failed");
+
+          const gmailUrl = await res.text();
+
+          window.open(gmailUrl, "_blank");
+        } catch (error) {
+          console.error("Error Viewing PO:", err.message);
+          alert(" Failed to view purchase order.");
+        }
       });
     });
   } catch (err) {
