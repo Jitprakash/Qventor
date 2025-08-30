@@ -1,36 +1,27 @@
-# Use official OpenJDK 21 base image
-FROM eclipse-temurin:21-jdk AS build
-
-# Set working directory
+# Build stage
+FROM maven:3.9.8-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml
-COPY mvnw .
-COPY .mvn .mvn
+# Copy pom.xml first (for dependency caching)
 COPY pom.xml .
 
-# Download dependencies
-RUN ./mvnw dependency:go-offline
-
-# Copy project source
+# Copy source code
 COPY src src
 
-# Build the application
-RUN ./mvnw clean package -DskipTests
+# Build the application (skip tests for faster build)
+RUN mvn clean package -DskipTests
 
 # -----------------------
-# Runtime image
+# Runtime stage
 # -----------------------
 FROM eclipse-temurin:21-jre
-
-# Set working directory
 WORKDIR /app
 
-# Copy jar from build stage
+# Copy the built jar from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose port
+# Expose port 8080
 EXPOSE 8080
 
-# Run the jar
+# Run the application
 ENTRYPOINT ["java","-jar","app.jar"]
