@@ -1,6 +1,7 @@
 import { supabase } from "./supabase-client.js";
 
 const tbody = document.getElementById("itemsTable");
+let currentUser = null;
 
 //  Get logged-in admin user
 async function getCurrentUser() {
@@ -20,11 +21,9 @@ async function getCurrentUser() {
 async function loadItems() {
   const adminUser = await getCurrentUser();
   if (!adminUser) return;
-
+  currentUser = adminUser;
   try {
-    const res = await fetch(
-      `/api/items/admin/${adminUser.id}`
-    );
+    const res = await fetch(`/api/items/admin/${adminUser.id}`);
     if (!res.ok) throw new Error("Failed to fetch items");
 
     const items = await res.json();
@@ -89,6 +88,27 @@ async function deleteItem(itemId) {
     alert(" Could not delete item.");
   }
 }
+
+window.searchProducts = async function () {
+  const query = searchInput.value.trim();
+  if (!query){
+    loadItems();
+    return; // prevent empty search
+  } 
+
+  try {
+    const adminId = currentUser.id;
+    const res = await fetch(
+      `/api/items/search/${adminId}?q=${encodeURIComponent(query)}`
+    );
+    if (!res.ok) throw new Error("Failed to search items");
+    const results = await res.json();
+    renderTable(results);
+  } catch (err) {
+    console.error("Search error:", err);
+    productList.innerHTML = `<p>❌ Error searching products.</p>`;
+  }
+};
 
 // Run on page load
 document.addEventListener("DOMContentLoaded", loadItems);
